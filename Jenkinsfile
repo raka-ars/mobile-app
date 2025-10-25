@@ -7,7 +7,6 @@ pipeline {
   }
 
   stages {
-
     stage('Checkout') {
       steps {
         echo ' Checkout source code dari GitHub...'
@@ -19,7 +18,7 @@ pipeline {
       steps {
         echo ' Membangun Flutter Web App...'
         bat """
-          docker run --rm -v %cd%:/app -w /app cirrusci/flutter:stable bash -c "flutter config --enable-web && flutter build web --release"
+          docker run --rm -v %cd%:/app -w /app ghcr.io/cirruslabs/flutter:3.22.0 bash -c "flutter config --enable-web && flutter pub get && flutter build web --release"
         """
       }
     }
@@ -27,13 +26,14 @@ pipeline {
     stage('Smoke Test') {
       steps {
         echo ' Menjalankan smoke test...'
-        bat 'bash test_smoke.sh || exit /b 1'
+        bat 'bash test_smoke.sh'
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        bat 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
+        echo ' Membuat Docker Image...'
+        bat "docker build -t ${env.IMAGE_NAME}:${env.BUILD_NUMBER} ."
       }
     }
 
@@ -41,10 +41,11 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
           bat """
+            echo  Login ke Docker Hub...
             docker login -u %USER% -p %PASS%
-            docker push ${IMAGE_NAME}:${BUILD_NUMBER}
-            docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${IMAGE_NAME}:latest
-            docker push ${IMAGE_NAME}:latest
+            docker push ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+            docker tag ${env.IMAGE_NAME}:${env.BUILD_NUMBER} ${env.IMAGE_NAME}:latest
+            docker push ${env.IMAGE_NAME}:latest
             docker logout
           """
         }
@@ -53,33 +54,34 @@ pipeline {
 
     stage('Deploy via Docker Compose') {
       steps {
-        echo ' Menjalankan Docker Compose...'
-        bat 'docker-compose up -d'
+        echo ' Men-deploy container menggunakan Docker Compose...'
+        bat "docker-compose down || exit 0"
+        bat "docker-compose up -d --build"
       }
     }
 
     stage('Expose via Ngrok') {
       steps {
-        echo ' Membuka akses container melalui Ngrok...'
-        bat 'start /B ngrok http 8080'
-        bat 'timeout /t 5'
+        echo ' Mengekspos port 8080 ke internet dengan Ngrok...'
+        bat "start /B ngrok http 8080"
+        bat "timeout /t 5"
       }
     }
 
     stage('Verify Deployment') {
       steps {
-        echo ' Verifikasi container dan endpoint...'
-        bat 'docker ps'
+        echo ' Verifikasi hasil deployment...'
+        bat "docker ps"
       }
     }
   }
 
   post {
     success {
-      echo ' Pipeline sukses! Aplikasi Flutter Web berhasil dibangun dan diekspos melalui Ngrok.'
+      echo ' Pipeline sukses — Flutter Web App berhasil dibangun dan di-deploy!'
     }
     failure {
-      echo ' Pipeline gagal — periksa log error di tiap stage.'
+      echo ' Pipeline gagal — periksa log setiap stage di Jenkins.'
     }
     always {
       echo ' Pipeline selesai dijalankan.'
