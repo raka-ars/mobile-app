@@ -1,20 +1,20 @@
-# Stage 1: Build Flutter web app
-FROM cirrusci/flutter:stable AS build
+# Gunakan image Flutter resmi
+FROM cirrusci/flutter:stable
 
+# Set working directory
 WORKDIR /app
+
+# Copy semua file project ke dalam container
 COPY . .
 
-# Build Flutter web
-RUN flutter config --enable-web && \
-    flutter build web --release
+# Pastikan Flutter siap digunakan untuk Web
+RUN flutter config --enable-web \
+    && flutter pub get \
+    && flutter build web --release
 
-# Stage 2: Serve via Nginx
+# Gunakan web server bawaan (gunakan Nginx untuk hosting build web)
 FROM nginx:alpine
+COPY --from=0 /app/build/web /usr/share/nginx/html
 
-# Copy hasil build ke folder default Nginx
-COPY --from=build /app/build/web /usr/share/nginx/html
-
-# Expose port 8080
-EXPOSE 8080
-
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
