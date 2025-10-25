@@ -10,13 +10,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Web Demo',
+      title: 'Flutter Web via Jenkins',
       home: Scaffold(
-        appBar: AppBar(title: const Text('Hello Flutter Web 🚀')),
+        appBar: AppBar(title: const Text(' Jenkins + Docker + Ngrok')),
         body: const Center(
           child: Text(
-            'Deployed with Jenkins + Docker + Ngrok!',
-            style: TextStyle(fontSize: 22),
+            'Build Success! Flutter Web running via Docker!',
+            style: TextStyle(fontSize: 20),
           ),
         ),
       ),
