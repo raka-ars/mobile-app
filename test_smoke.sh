@@ -1,10 +1,8 @@
 #!/bin/bash
-set -e
-
-echo "Menjalankan smoke test untuk Flutter Web build..."
-if [ ! -d "build/web" ]; then
-  echo "❌ Folder build/web tidak ditemukan. Build gagal!"
-  exit 1
+if [ -f "build/web/index.html" ]; then
+  echo "✅ Smoke test passed: build/web/index.html ditemukan."
+  exit 0
 else
-  echo "✅ Build Flutter Web ditemukan. Test lulus."
+  echo "❌ Smoke test gagal: file build/web/index.html tidak ditemukan."
+  exit 1
 fi
