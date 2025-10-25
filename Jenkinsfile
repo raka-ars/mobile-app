@@ -86,13 +86,14 @@ pipeline {
 
   post {
     success {
-      echo '✅ Pipeline sukses — Flutter Web berhasil dibangun, dites, di-push, dan dijalankan.'
+      echo ' Pipeline sukses — Flutter Web berhasil dibangun, dites, di-push, dan dijalankan.'
     }
     failure {
-      echo '❌ Pipeline gagal — periksa log error pada tahapan sebelumnya.'
+      echo ' Pipeline gagal — periksa log error pada tahapan sebelumnya.'
     }
     always {
       echo '🏁 Pipeline selesai dijalankan.'
     }
   }
 }
+
